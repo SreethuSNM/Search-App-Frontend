@@ -1,0 +1,194 @@
+    /* Ensure parent `.preview-container` doesn’t force expansion */
+    .preview-containers {
+        width: 100%;
+        max-width: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        background-color: #8B77F933;
+        padding: 16px;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        min-height: 300px;
+    }
+
+    /* Ensure child elements stay within max-width */
+    .preview-header,
+    .search-container,
+    .search-results {
+        max-width: 100%; /* Prevent overflow */
+    }
+
+
+    .preview-title{
+        margin-left:12px;
+
+    }
+
+
+
+    /* Ensure `.preview-card` does not cut off content */
+    .preview-card {
+        width: 100%;
+        max-width: 470px;
+        max-height: none; /* allow full expansion */
+        height: auto;
+        background-color:white;
+        border: 1px solid rgba(140, 121, 255, 0.25);
+        padding: 20px;
+        border-radius:3px;
+        
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start; /* Fix spacing */
+    }
+
+    .preview-cardd {
+        background-color:white;
+        max-height: none; /* allow full expansion */
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start; /* Fix spacing */
+        padding: 10px;
+        width:230px;
+
+    }
+
+    .search-results {
+        width: 100%;
+        max-width: 100%;
+        max-height: 250px; /* Adjust this as needed */
+        overflow-y: auto; /* Enables scrolling */
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+        padding: 10px;
+        background-color: white; /* Remove red background */
+        border-radius: 5px;
+        color: black;
+          
+          
+    }
+
+   
+
+    .search-containerr {
+       
+        width: 90%;
+     
+    }
+    
+
+    .search-container {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 16px;
+    }
+
+    .search-bar {
+        display: flex;
+        align-items: center;
+        background-color: rgba(221, 221, 221, 0.53);
+        padding: 5px;
+        border-radius: 5px;
+        width: 317px;  /* Set fixed width */
+        height: 25px; /* Set fixed height */
+        position: relative;
+    }
+
+    .search-barr {
+        display: flex;
+        align-items: center;
+        background-color: rgba(221, 221, 221, 0.53);
+        padding: 5px;
+        border-radius: 5px;
+        width: 200px;  /* Set fixed width */
+        height: 25px; /* Set fixed height */
+        position: relative;
+    }
+
+    .search-input {
+        flex-grow: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: black;
+        padding: 5px;
+        font-size: 14px;
+        width: 100%;
+        height: 100%;
+        padding-right: 35px; /* Space for button */
+    }
+
+   
+
+    .search-button {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px; 
+        height: 23px;
+    }
+
+    .search-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    
+
+    .result-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 12px;
+        font-size: 10px;
+        line-height: 1.4;
+        color: #333;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      
+      .result-title,
+      .result-path,
+      .result-snippet {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px; /* adjust as needed */
+      }
+      
+      .result-title {
+        font-weight: bold;
+        margin-right: 8px;
+      }
+      
+      .result-path {
+        font-style: italic;
+        color: gray;
+        margin-right: 8px;
+      }
+      
+      .result-snippet {
+        flex-grow: 1;
+      }
+      
