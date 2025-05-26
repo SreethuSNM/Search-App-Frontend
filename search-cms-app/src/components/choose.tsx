@@ -12,82 +12,35 @@ export default function Choose({
   fetchCollectionItems,
   pages, 
   selectedPage, 
-  setSelectedPage
+  setSelectedPage,
+  option,
+  setOption
 }) {
   const [selectAllCollections, setSelectAllCollections] = useState(true);
   const [selectAllFields, setSelectAllFields] = useState(true);
   const [fields, setFields] = useState([]);
   const [loadingFields, setLoadingFields] = useState(false);
-  const [option, setOption] = useState("Collection");
-
+ 
+  // Restore from localStorage once collections are available
   useEffect(() => {
-    if (collections.length && selectedCollections.length === 0) {
+    if (!collections.length) return;
+
+    const savedCollections = JSON.parse(localStorage.getItem("selectedCollections") || "[]");
+    const savedFields = JSON.parse(localStorage.getItem("selectedFields") || "[]");
+
+    if (savedCollections.length > 0) {
+      setSelectedCollections(savedCollections);
+      setSelectAllCollections(savedCollections.length === collections.length);
+    } else {
       const allCollectionIds = collections.map((c) => c.id);
       setSelectedCollections(allCollectionIds);
       setSelectAllCollections(true);
     }
+
+    setSelectedFields(savedFields);
   }, [collections]);
 
-  const toggleSelection = (type, id) => {
-    if (type === "collection") {
-      const updated = selectedCollections.includes(id)
-        ? selectedCollections.filter((c) => c !== id)
-        : [...selectedCollections, id];
-      setSelectedCollections(updated);
-    } else {
-      const updated = selectedFields.includes(id)
-        ? selectedFields.filter((f) => f !== id)
-        : [...selectedFields, id];
-      setSelectedFields(updated);
-    }
-  };
-
-  const handleSelectAll = (type) => {
-    if (type === "collection") {
-      const all = !selectAllCollections;
-      setSelectAllCollections(all);
-      const newSelected = all ? collections.map((c) => c.id) : [];
-      setSelectedCollections(newSelected);
-    } else {
-      const all = !selectAllFields;
-      setSelectAllFields(all);
-      setSelectedFields(all ? fields : []);
-    }
-  };
-
-  useEffect(() => {
-    const fetchFields = async () => {
-      if (!sessionToken || selectedCollections.length === 0) {
-        setFields([]);
-        setSelectedFields([]);
-        return;
-      }
-
-      setLoadingFields(true);
-      const fieldSet = new Set();
-      for (const collectionId of selectedCollections) {
-        try {
-          const items = await fetchCollectionItems(sessionToken, collectionId);
-          items.forEach((item) => {
-            if (item.fieldData) {
-              Object.keys(item.fieldData).forEach((key) => fieldSet.add(key));
-            }
-          });
-        } catch (e) {
-          console.error(`Error fetching items for collection ${collectionId}:`, e);
-        }
-      }
-
-      const newFields = Array.from(fieldSet);
-      setFields(newFields);
-      setSelectedFields(newFields);
-      setSelectAllFields(true);
-      setLoadingFields(false);
-    };
-
-    fetchFields();
-  }, [selectedCollections, sessionToken, fetchCollectionItems, setSelectedFields]);
-
+  // Persist selections to localStorage
   useEffect(() => {
     localStorage.setItem("selectedCollections", JSON.stringify(selectedCollections));
   }, [selectedCollections]);
@@ -96,6 +49,87 @@ export default function Choose({
     localStorage.setItem("selectedFields", JSON.stringify(selectedFields));
   }, [selectedFields]);
 
+  // Fetch fields from selected collections
+ useEffect(() => {
+  let isCancelled = false;
+
+  const fetchFields = async () => {
+    if (!sessionToken || selectedCollections.length === 0) {
+      setFields([]);
+      setSelectedFields([]);
+      setSelectAllFields(false);
+      return;
+    }
+
+    setLoadingFields(true);
+    const fieldSet = new Set();
+
+    for (const collectionId of selectedCollections) {
+      try {
+        const items = await fetchCollectionItems(sessionToken, collectionId);
+        items.forEach((item) => {
+          if (item.fieldData) {
+            Object.keys(item.fieldData).forEach((key) => fieldSet.add(key));
+          }
+        });
+      } catch (error) {
+        console.error(`Error fetching items for collection ${collectionId}:`, error);
+      }
+    }
+
+    if (isCancelled) return;
+
+    const newFields = Array.from(fieldSet);
+    setFields(newFields);
+
+    const validFields = selectedFields.filter((f) => newFields.includes(f));
+    setSelectedFields(validFields);
+    setSelectAllFields(validFields.length === newFields.length);
+
+    // Cache
+    const key = selectedCollections.sort().join(",");
+    const cached = JSON.parse(localStorage.getItem("fieldsForCollections") || "{}");
+    cached[key] = { fields: newFields, selectedFields: validFields };
+    localStorage.setItem("fieldsForCollections", JSON.stringify(cached));
+
+    setLoadingFields(false);
+  };
+
+  fetchFields();
+
+  return () => {
+    isCancelled = true;
+  };
+}, [selectedCollections, sessionToken, fetchCollectionItems]);
+
+
+  const toggleSelection = (type, id) => {
+    if (type === "collection") {
+      const updated = selectedCollections.includes(id)
+        ? selectedCollections.filter((c) => c !== id)
+        : [...selectedCollections, id];
+      setSelectedCollections(updated);
+      setSelectAllCollections(updated.length === collections.length);
+    } else {
+      const updated = selectedFields.includes(id)
+        ? selectedFields.filter((f) => f !== id)
+        : [...selectedFields, id];
+      setSelectedFields(updated);
+      setSelectAllFields(updated.length === fields.length);
+    }
+  };
+
+  const handleSelectAll = (type) => {
+    if (type === "collection") {
+      const all = !selectAllCollections;
+      setSelectedCollections(all ? collections.map((c) => c.id) : []);
+      setSelectAllCollections(all);
+    } else {
+      const all = !selectAllFields;
+      setSelectedFields(all ? fields : []);
+      setSelectAllFields(all);
+    }
+  };
 
   const handlePageChange = async (event) => {
     const pageId = event.target.value;
@@ -103,7 +137,7 @@ export default function Choose({
     if (selected) {
       setSelectedPage(selected);
       try {
-        await webflow.switchPage(selected);
+        await webflow.switchPage(selected); // Assuming webflow is globally available
       } catch (error) {
         console.error("Failed to switch page:", error);
       }
@@ -111,14 +145,13 @@ export default function Choose({
   };
 
 
-
+  
   return (
     <div className="choose-wrapper">
       <div className="choose-header">
-        <button onClick={() => setActiveComponent("setup")} className="continue-button">
-          Continue
-        </button>
-        {/* <button onClick={Createinput}>Create Input</button> */}
+      <button onClick={() => {setActiveComponent("choose2");}}className="continue-button">Continue</button>
+
+       
       </div>
 
       <hr className="separator-line" />
@@ -126,16 +159,12 @@ export default function Choose({
       <div className="choose-container">
         <div className="choose-content">
           <h1 className="choose-title">Choose Accordingly</h1>
-
-
-          
-
            {/* Radio Options */}
         <div className="radio-group">
-          {["Collection", "Pages", "Collection + Pages"].map((item) => (
+          {["Collection", "Pages", "Both"].map((item) => (
             <label key={item} className="radio-label">
               <input
-                type="radio"
+                type="radio"  
                 value={item}
                 checked={option === item}
                 onChange={() => setOption(item)}
@@ -203,10 +232,8 @@ export default function Choose({
                   All
                 </label>
               </div>
-              {loadingFields ? (
-                <div>Loading fields...</div>
-              ) : (
-                fields.map((field) => (
+              {!loadingFields &&
+                  fields.map((field) => (
                   <label key={field} className="selection-item">
                     <input
                       type="checkbox"
@@ -215,8 +242,7 @@ export default function Choose({
                     />
                     <span>{field}</span>
                   </label>
-                ))
-              )}
+                ))}
             </div>
           </div>
         </div>

@@ -1,0 +1,18 @@
+.selected-order-list {
+  margin-top: 16px;
+  padding: 10px;
+  background-color: #8B77F912;
+  border-radius: 8px;
+  color:black;
+}
+
+.selection-cardd {
+  flex: 1;
+  background-color: #1C1935;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid gray;
+  max-height: 200px;
+  overflow-y: auto; 
+}
+

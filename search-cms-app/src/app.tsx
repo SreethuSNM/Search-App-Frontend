@@ -6,6 +6,9 @@ import Choose from "./components/choose";
 import Setup from "./components/setup";
 import Finish from "./components/finish";
 import { useAuth } from "./hooks/useAuth";
+import ChooseSecond from "./components/choose2";
+import Customizer from "./components/customizer";
+
 import {
   fetchCollectionItems,
   fetchCollections,
@@ -37,11 +40,17 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [pages, setPages] = useState([]);
   const [selectedPage, setSelectedPage] = useState(null);
+  const [option, setOption] = useState("Collection");
+  const [selectedDisplayFields, setSelectedDisplayFields] = useState([]);
+  
+
 
   const handleSetActiveComponent = (component) => {
     if (component === "choose") setActiveStep(0);
-    else if (component === "setup") setActiveStep(1);
-    else if (component === "finish") setActiveStep(2);
+    else if (component === "choose2") setActiveStep(1);
+    else if (component === "customizer") setActiveStep(2);
+    else if (component === "setup") setActiveStep(3);
+    else if (component === "finish") setActiveStep(4);
   };
 
   useEffect(() => {
@@ -79,8 +88,17 @@ function App() {
         if (cachedCollections) {
           setCollections(JSON.parse(cachedCollections));
         } else {
-          const sites = await fetchSites(sessionToken);
-          const siteId = sites?.[0]?.id;
+          const siteIdInfo = await webflow.getSiteInfo();
+
+          if (!siteIdInfo?.siteId) {
+            webflow.notify({ type: "Error", message: "Site ID not found." });
+            return;
+          }
+          
+          const siteId = siteIdInfo.siteId;
+
+          console.log("siteid:::::",siteId)
+          
           const result = await fetchCollections(sessionToken, siteId);
           setCollections(result);
           localStorage.setItem("collections", JSON.stringify(result));
@@ -129,6 +147,17 @@ function App() {
     };
     fetchPages();
   }, [webflow]);
+
+const [customStyle, setCustomStyle] = useState({
+    borderRadius: "8px",
+    titleColor: " #cf06aa",
+    titleFontSize: "16px",
+    titleFontFamily: "Arial",
+    otherFieldsColor: " #00a619",
+    otherFieldsFontSize: "14px",
+    boxShadow: true, 
+  });
+
   return (
     <MainLayout
       activeStep={activeStep}
@@ -147,10 +176,41 @@ function App() {
           pages={pages}
           selectedPage={selectedPage}
           setSelectedPage={setSelectedPage}
+          option={option}
+          setOption={setOption}
         />
       )}
-      {activeStep === 1 && <Setup setActiveComponent={handleSetActiveComponent} />}
-      {activeStep === 2 && <Finish />}
+
+         {activeStep === 1 && (
+        <ChooseSecond
+          setActiveComponent={handleSetActiveComponent}
+          selectedCollections={selectedCollections}
+          selectedFields={selectedFields}
+          selectedDisplayFields={selectedDisplayFields}
+          setSelectedDisplayFields={setSelectedDisplayFields}
+          sessionToken={sessionToken}
+          fetchCollectionItems={fetchCollectionItems}
+          option={option}
+        />
+      )}
+
+      {activeStep === 2 && (
+  <Customizer
+   setActiveComponent={handleSetActiveComponent} 
+    customStyle={customStyle}
+    setCustomStyle={setCustomStyle}
+    />
+)}
+      {activeStep === 3 && <Setup 
+      setActiveComponent={handleSetActiveComponent} 
+      selectedCollections={selectedCollections}
+      selectedFields={selectedFields}
+      selectedDisplayFields={selectedDisplayFields}
+      option={option}
+      customStyle={customStyle}
+      
+      />}
+      {activeStep === 4 && <Finish />}
     </MainLayout>
   );
 }

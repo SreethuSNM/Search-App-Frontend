@@ -134,31 +134,81 @@ export const fetchSearchIndex = async (token: string, query: string, siteId: str
 };
 
 
- export const registerAnalyticsBlockingScript = async (token: string) => {
+export const registerAnalyticsBlockingScript = async (token: string) => {
   try {
-   
     const response = await fetch(`${base_url}/api/custom-code/apply-custom-code`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
-      },
-     
+      }
     });
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error response:', errorText);
+
+    const text = await response.text();
+    let data: any;
+
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error("Failed to parse response as JSON:", text);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('Response data:', data);
+    if (!response.ok) {
+      console.error("Error response:", data);
+
+      // Handle the nested stringified JSON inside `details` (if any)
+      let parsedDetails: any = {};
+      try {
+        if (typeof data.details === "string" && data.details.includes("duplicate_registered_script")) {
+          const match = data.details.match(/"code":\s*"([^"]+)"/);
+          if (match && match[1] === "duplicate_registered_script") {
+            return {
+              scriptId: "searchscript",
+              version: "1.0.0",
+              duplicate: true,
+            };
+          }
+        }
+      } catch (parseErr) {
+        console.warn("Could not parse 'details' field:", parseErr);
+      }
+
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
     return data;
   } catch (error) {
-    console.error('Error in registerAnalyticsBlockingScript:', error);
+    console.error("Error in registerAnalyticsBlockingScript:", error);
     throw error;
   }
-}
+};
+
+//  export const registerAnalyticsBlockingScript = async (token: string) => {
+//   try {
+   
+//     const response = await fetch(`${base_url}/api/custom-code/apply-custom-code`, {
+//       method: 'POST',
+//       headers: {
+//         'Authorization': `Bearer ${token}`,
+//         'Content-Type': 'application/json'
+//       },
+     
+//     });
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error('Error response:', errorText);
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
+
+//     const data = await response.json();
+//     console.log('Response data:', data);
+//     return data;
+//   } catch (error) {
+//     console.error('Error in registerAnalyticsBlockingScript:', error);
+//     throw error;
+//   }
+// }
 
 
 // Apply script to site or page

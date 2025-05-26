@@ -1,0 +1,181 @@
+.choose-container {
+  width: 524px;
+  height: 430px;
+  background-color: #8B77F912;
+  color: white;
+  display: flex;
+  flex-direction: row; /* ✅ Ensure children are side-by-side */
+  gap: 2rem;
+  font-weight: normal;
+  padding: 6px;
+  border-radius: 8px;
+  overflow-y: auto; /* enables vertical scrolling */
+  scrollbar-width: thin;
+}
+
+.choose-wrapper {
+  background-color:#09071B;
+
+
+ 
+}
+.separator-line {
+  width: 100%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.2); /* Light line color */
+  border: none;
+  margin: 10px 0; /* Space above and below */
+}
+
+
+
+
+
+
+.choose-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+  gap: 10px;
+  
+}
+
+
+
+.continue-button {
+  background-color: #262E84;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  cursor: pointer;
+  border-radius: 4px;
+ 
+}
+
+.continue-button:hover {
+  background-color: #3C3883;
+}
+
+
+
+.form-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 0 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #ddd;
+  width: 100px; /* Fixed width so inputs align */
+  margin-right: 12px;
+}
+
+.form-group input,
+.form-group select {
+  flex: 1; /* Take up remaining space */
+  max-width: 100px; /* Optional: limit max width */
+  max-height: 30px;
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+
+
+
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  /* Optional: limit max width so it fits nicely */
+  max-width: 300px;
+}
+
+.color-row label {
+  width: 70px;
+  color: #ddd;
+  font-size: 14px;
+  flex-shrink: 0; /* keep label size */
+}
+
+
+.color-picker-wrapper {
+  display: flex;
+  /* flex-direction: column; */
+  align-items: center;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px;
+  gap: 0; /* remove flex gap */
+}
+
+/* Color Picker container */
+.color-picker {
+  transform: scale(0.7);
+  transform-origin: top center;
+  width: 100px;
+  height: 120px;
+  margin: 0 !important;   /* ✅ Ensure no spacing from margin */
+  padding: 0 !important;  /* ✅ Ensure no spacing from padding */
+  border: none;
+}
+
+/* Color selected preview */
+.color-selected {
+  margin-top: 4px;
+  width: 100px;
+  height: 40px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  color: black;
+  margin: 0 !important;    /* ✅ Forcefully remove any spacing */
+  padding: 0 !important;   /* ✅ Just in case */
+}
+
+.switch {
+  position: relative;
+  width: 45px;
+  height: 20px;
+  background-color: #e0e0e0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+align-items: center;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.switch.on {
+  background-color: #007bff; /* Blue background when on */
+}
+
+.switch .slider {
+  width: 15px;
+  height: 15px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transform: translateX(0);
+}
+
+.switch.on .slider {
+  transform: translateX(25px); /* stays fully inside the container */
+}
+
+.switch-label {
+  font-size: 12px;
+  margin-left: 0.5rem;
+  color: white;
+  min-width: 30px;
+  text-align: right;
+}
+

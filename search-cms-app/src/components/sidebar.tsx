@@ -2,7 +2,7 @@ import React from "react";
 import "../styles/sidebar.css"; // Correct path
 
 export default function Sidebar({ setActiveComponent, activeStep }) {
-  const progressMap = [0, 10, 50, 100];
+  const progressMap = [0, 10, 20, 50, 100];
   const progressPercent = progressMap[activeStep] || 0;
 
   return (
@@ -33,43 +33,65 @@ export default function Sidebar({ setActiveComponent, activeStep }) {
 
       <hr className="separator-linee" />
 
-      {/* Sidebar Navigation */}
-      <nav className="sidebar-nav">
-        {/* Choose Step */}
-        <div
-          className={`sidebar-item ${activeStep === 0 ? "active" : ""}`}
-          onClick={() => setActiveComponent("choose")}
-        >
-          <div className="icon-container">
-            <img src="images/setting.png" alt="Settings" className="icon" />
-          </div>
-          <span className="sidebar-text">Choose</span>
-        </div>
+     <nav className="sidebar-nav">
+  {/* Choose Step */}
+  <div
+    className={`sidebar-item ${activeStep === 0 ? "active" : ""}`}
+    onClick={() => setActiveComponent("choose")}
+  >
+    <div className="icon-container">
+      <img src="images/setting.png" alt="Settings" className="icon" />
+    </div>
+    <span className="sidebar-text">Choose Search</span>
+  </div>
 
-      {/* Setup Step */}
-        <div
-          className={`sidebar-item ${activeStep === 1 ? "active" : ""}`}
-          onClick={() => setActiveComponent("setup")}
-        >
-          <div className="icon-container">
-            <img src="images/grid-edit.png" alt="Grid Edit" className="icon" />
-          </div>
-          <span className="sidebar-text">Setup</span>
-        </div>
+  {/* ChooseSecond Step */}
+  <div
+    className={`sidebar-item ${activeStep === 1 ? "active" : ""}`}
+    onClick={() => setActiveComponent("choose2")}
+  >
+    <div className="icon-container">
+      <img src="images/setting.png" alt="Settings" className="icon" />
+    </div>
+    <span className="sidebar-text">Choose Display</span>
+  </div>
 
-        {/* Finish Step - Show only when activeStep is 2 */}
-        {activeStep === 2 && (
-          <div
-            className={`sidebar-item ${activeStep === 2 ? "active" : ""}`}
-            onClick={() => setActiveComponent("finish")}
-          >
-            <div className="icon-container">
-              <img src="images/finish.png" alt="Finish" className="icon" />
-            </div>
-            <span className="sidebar-text">Finish</span>
-          </div>
-        )}
-      </nav>
+  {/* Customizer Step */}
+  <div
+    className={`sidebar-item ${activeStep === 2 ? "active" : ""}`}
+    onClick={() => setActiveComponent("customizer")}
+  >
+    <div className="icon-container">
+      <img src="images/grid-edit.png" alt="Customize Display" className="icon" />
+    </div>
+    <span className="sidebar-text">Customize Display</span>
+  </div>
+
+  {/* Setup Step */}
+  <div
+    className={`sidebar-item ${activeStep === 3 ? "active" : ""}`}
+    onClick={() => setActiveComponent("setup")}
+  >
+    <div className="icon-container">
+      <img src="images/grid-edit.png" alt="Setup" className="icon" />
+    </div>
+    <span className="sidebar-text">Setup</span>
+  </div>
+
+  {/* Finish Step - only render if activeStep === 4 */}
+{activeStep === 4 && (
+  <div
+    className="sidebar-item active"
+    onClick={() => setActiveComponent("finish")}
+  >
+    <div className="icon-container">
+      <img src="images/finish.png" alt="Finish" className="icon" />
+    </div>
+    <span className="sidebar-text">Finish</span>
+  </div>
+)}
+</nav>
+
     </aside>
   );
 }

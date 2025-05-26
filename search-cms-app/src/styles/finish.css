@@ -82,8 +82,16 @@
   border-radius: 4px;
   border: none;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
+
+
+
+.finish-button:active {
+  transform: scale(0.97);
+  background-color: #145eb0;
+}
+
 
 .finish-button:hover {
   background-color: #3C3883;
