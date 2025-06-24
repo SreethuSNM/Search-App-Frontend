@@ -56,8 +56,8 @@ export default function ChooseSecond({
   setSelectedDisplayFields,
 }) {
   const [fields, setFields] = useState([]);
-  const [loadingFields, setLoadingFields] = useState(false);
-  const [selectAllDisplayFields, setSelectAllDisplayFields] = useState(true);
+  const [loadingFields, setLoadingFields] = useState(true);
+  const [selectAllDisplayFields, setSelectAllDisplayFields] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -103,8 +103,10 @@ export default function ChooseSecond({
         const defaults = validSaved.length ? validSaved : newFields;
 
         setFields(newFields);
-        setSelectedDisplayFields(defaults);
-        setSelectAllDisplayFields(defaults.length === newFields.length);
+        // setSelectedDisplayFields(defaults);
+        setSelectedDisplayFields([]); 
+        // setSelectAllDisplayFields(defaults.length === newFields.length);
+        setSelectAllDisplayFields(false);
       } catch (error) {
         console.error("Error fetching fields:", error);
       } finally {
@@ -152,7 +154,7 @@ export default function ChooseSecond({
   return (
     <div className="choose-wrapper">
       <div className="choose-header">
-        <button onClick={() => setActiveComponent("customizer")} className="continue-button">
+        <button onClick={() => setActiveComponent("setup")} className="continue-button">
           Continue
         </button>
       </div>

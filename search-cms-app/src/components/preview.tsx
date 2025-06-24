@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { fetchSearchIndex, fetchSites } from "../services/api";
 
 
-export default function Preview({ onMinimize , searchType , resultType }) {
+export default function Preview({ onMinimize , searchType  }) {
   const { sessionToken } = useAuth();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
@@ -15,7 +15,7 @@ export default function Preview({ onMinimize , searchType , resultType }) {
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (resultType !== "Auto result") return;
+   
   
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
@@ -26,7 +26,7 @@ export default function Preview({ onMinimize , searchType , resultType }) {
         handleSearch();
       }
     }, 500); // 500ms debounce
-  }, [query, resultType]);
+  }, [query]);
   
 
 
@@ -129,7 +129,7 @@ export default function Preview({ onMinimize , searchType , resultType }) {
               value={query}
               onChange={handleSearchChange}
             />
-            <button className="search-button" onClick={handleSearch}disabled={resultType === "Auto result"}>
+            <button className="search-button" onClick={handleSearch}>
               <img src="/images/searchh.png" alt="Search" className="search-icon" />
             </button>
           </div>
@@ -152,7 +152,7 @@ export default function Preview({ onMinimize , searchType , resultType }) {
                   value={query}
                   onChange={handleSearchChange}
                 />
-                <button className="search-button" onClick={handleSearch} disabled={resultType === "Auto result"}>
+                <button className="search-button" onClick={handleSearch} >
                   <img src="/images/searchh.png" alt="Search" className="search-icon" />
                 </button>
               </div>

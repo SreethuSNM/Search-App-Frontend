@@ -10,241 +10,273 @@ export default function Choose({
   setSelectedFields,
   sessionToken,
   fetchCollectionItems,
-  pages, 
-  selectedPage, 
-  setSelectedPage,
+  selectedCollectionName,
+  setSelectedCollectionName,
+  userOption,
+  setUserOption,
   option,
-  setOption
+  setOption,
+  selectedCollectionId,
+  setSelectedCollectionId,
+  filterCollectionId,
+  filterCollectionName,
+  filterFields,
+  setFilterCollectionId,
+  setFilterCollectionName,
+  setFilterFields,
 }) {
   const [selectAllCollections, setSelectAllCollections] = useState(true);
   const [selectAllFields, setSelectAllFields] = useState(true);
   const [fields, setFields] = useState([]);
   const [loadingFields, setLoadingFields] = useState(false);
- 
-  // Restore from localStorage once collections are available
-  useEffect(() => {
-    if (!collections.length) return;
+const [selectAllSiteCollections, setSelectAllSiteCollections] = useState(true);
+const [selectAllSiteFields, setSelectAllSiteFields] = useState(true);
+const [selectAllFilterFields, setSelectAllFilterFields] = useState(true);
 
-    const savedCollections = JSON.parse(localStorage.getItem("selectedCollections") || "[]");
-    const savedFields = JSON.parse(localStorage.getItem("selectedFields") || "[]");
-
-    if (savedCollections.length > 0) {
-      setSelectedCollections(savedCollections);
-      setSelectAllCollections(savedCollections.length === collections.length);
-    } else {
-      const allCollectionIds = collections.map((c) => c.id);
-      setSelectedCollections(allCollectionIds);
-      setSelectAllCollections(true);
-    }
-
-    setSelectedFields(savedFields);
-  }, [collections]);
-
-  // Persist selections to localStorage
-  useEffect(() => {
-    localStorage.setItem("selectedCollections", JSON.stringify(selectedCollections));
-  }, [selectedCollections]);
+  const [loadingFilterFields, setLoadingFilterFields] = useState(true);
+  const [loadingSiteFields, setLoadingSiteFields] = useState(true);
+  const [siteFieldOptions, setSiteFieldOptions] = useState([]);
+  const [filterFieldOptions, setFilterFieldOptions] = useState([]);
 
   useEffect(() => {
-    localStorage.setItem("selectedFields", JSON.stringify(selectedFields));
-  }, [selectedFields]);
+    localStorage.setItem("filterCollectionId", filterCollectionId);
+  }, [filterCollectionId]);
 
-  // Fetch fields from selected collections
- useEffect(() => {
-  let isCancelled = false;
+  useEffect(() => {
+    localStorage.setItem("filterFields", JSON.stringify(filterFields));
+  }, [filterFields]);
 
-  const fetchFields = async () => {
-    if (!sessionToken || selectedCollections.length === 0) {
-      setFields([]);
-      setSelectedFields([]);
-      setSelectAllFields(false);
-      return;
-    }
+  // Fetch fields for Site Search (now using selectedCollections, selectedFields)
+  useEffect(() => {
+    if (!sessionToken || selectedCollections.length === 0) return;
 
-    setLoadingFields(true);
-    const fieldSet = new Set();
+    let cancelled = false;
+    setLoadingSiteFields(true);
 
-    for (const collectionId of selectedCollections) {
+    const loadFields = async () => {
+      const fieldSet = new Set();
+      for (const id of selectedCollections) {
+        try {
+          const items = await fetchCollectionItems(sessionToken, id);
+          items.forEach((item) => {
+            if (item.fieldData) {
+              Object.keys(item.fieldData).forEach((k) => fieldSet.add(k));
+            }
+          });
+        } catch (e) {
+          console.error("Error fetching site search fields:", e);
+        }
+      }
+
+      if (cancelled) return;
+
+      const fieldArr = Array.from(fieldSet);
+      setSiteFieldOptions(fieldArr);
+
+      const validFields = selectedFields.filter((f) => fieldArr.includes(f));
+      // setSelectedFields(validFields.length ? validFields : fieldArr);
+      setSelectedFields(validFields);
+      setSelectAllSiteFields(validFields.length === fieldArr.length);
+      setLoadingSiteFields(false);
+    };
+
+    loadFields();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedCollections, sessionToken]);
+
+  // Fetch fields for Collection Filtering
+  useEffect(() => {
+    if (!sessionToken || !filterCollectionId) return;
+
+    let cancelled = false;
+    setLoadingFilterFields(true);
+
+    const loadFields = async () => {
       try {
-        const items = await fetchCollectionItems(sessionToken, collectionId);
+        const items = await fetchCollectionItems(sessionToken, filterCollectionId);
+        const fieldSet = new Set();
         items.forEach((item) => {
           if (item.fieldData) {
-            Object.keys(item.fieldData).forEach((key) => fieldSet.add(key));
+            Object.keys(item.fieldData).forEach((k) => fieldSet.add(k));
           }
         });
-      } catch (error) {
-        console.error(`Error fetching items for collection ${collectionId}:`, error);
+
+        if (cancelled) return;
+
+        const fieldArr = Array.from(fieldSet);
+        setFilterFieldOptions(fieldArr);
+
+        const validFields = filterFields.filter((f) => fieldArr.includes(f));
+        // setFilterFields(validFields.length ? validFields : fieldArr);
+        setFilterFields(validFields);
+        setSelectAllFilterFields(validFields.length === fieldArr.length);
+        setLoadingFilterFields(false);
+      } catch (e) {
+        console.error("Error fetching filter fields:", e);
       }
-    }
+    };
 
-    if (isCancelled) return;
+    loadFields();
+    return () => {
+      cancelled = true;
+    };
+  }, [filterCollectionId, sessionToken]);
 
-    const newFields = Array.from(fieldSet);
-    setFields(newFields);
+  useEffect(() => {
+    const selected = collections.find((c) => c.id === filterCollectionId);
+    setSelectedCollectionName(selected?.displayName || "");
+  }, [filterCollectionId]);
 
-    const validFields = selectedFields.filter((f) => newFields.includes(f));
-    setSelectedFields(validFields);
-    setSelectAllFields(validFields.length === newFields.length);
-
-    // Cache
-    const key = selectedCollections.sort().join(",");
-    const cached = JSON.parse(localStorage.getItem("fieldsForCollections") || "{}");
-    cached[key] = { fields: newFields, selectedFields: validFields };
-    localStorage.setItem("fieldsForCollections", JSON.stringify(cached));
-
-    setLoadingFields(false);
+  const toggleSelection = (list, setList, all, setAll, item, fullList) => {
+    const updated = list.includes(item) ? list.filter((i) => i !== item) : [...list, item];
+    setList(updated);
+    setAll(updated.length === fullList.length);
   };
 
-  fetchFields();
-
-  return () => {
-    isCancelled = true;
-  };
-}, [selectedCollections, sessionToken, fetchCollectionItems]);
-
-
-  const toggleSelection = (type, id) => {
-    if (type === "collection") {
-      const updated = selectedCollections.includes(id)
-        ? selectedCollections.filter((c) => c !== id)
-        : [...selectedCollections, id];
-      setSelectedCollections(updated);
-      setSelectAllCollections(updated.length === collections.length);
-    } else {
-      const updated = selectedFields.includes(id)
-        ? selectedFields.filter((f) => f !== id)
-        : [...selectedFields, id];
-      setSelectedFields(updated);
-      setSelectAllFields(updated.length === fields.length);
-    }
+  const handleSelectAll = (all, setAll, setList, list) => {
+    const nextAll = !all;
+    setAll(nextAll);
+    setList(nextAll ? list : []);
   };
 
-  const handleSelectAll = (type) => {
-    if (type === "collection") {
-      const all = !selectAllCollections;
-      setSelectedCollections(all ? collections.map((c) => c.id) : []);
-      setSelectAllCollections(all);
-    } else {
-      const all = !selectAllFields;
-      setSelectedFields(all ? fields : []);
-      setSelectAllFields(all);
-    }
-  };
+  useEffect(() => {
+    const selected = collections.find((c) => c.id === selectedCollectionId);
+    setSelectedCollectionName(selected?.displayName || "");
+  }, [selectedCollectionId]);
 
-  const handlePageChange = async (event) => {
-    const pageId = event.target.value;
-    const selected = pages.find((p) => p.id === pageId);
-    if (selected) {
-      setSelectedPage(selected);
-      try {
-        await webflow.switchPage(selected); // Assuming webflow is globally available
-      } catch (error) {
-        console.error("Failed to switch page:", error);
-      }
-    }
-  };
-
-
-  
   return (
     <div className="choose-wrapper">
       <div className="choose-header">
-      <button onClick={() => {setActiveComponent("choose2");}}className="continue-button">Continue</button>
-
-       
+        <button
+          onClick={() => {
+            if (option === "Collection" || option === "Both") {
+              setActiveComponent("choose2");
+            } else {
+              setActiveComponent("setup");
+            }
+          }}
+          className="continue-button"
+        >
+          Continue
+        </button>
       </div>
 
       <hr className="separator-line" />
 
       <div className="choose-container">
         <div className="choose-content">
-          <h1 className="choose-title">Choose Accordingly</h1>
-           {/* Radio Options */}
-        <div className="radio-group">
-          {["Collection", "Pages", "Both"].map((item) => (
-            <label key={item} className="radio-label">
-              <input
-                type="radio"  
-                value={item}
-                checked={option === item}
-                onChange={() => setOption(item)}
-              />
-              <span className={`radio-circle ${option === item ? "selected" : ""}`}></span>
-              {item}
-            </label>
-          ))}
-        </div>
+          <h1 className="choose-title">Choose Accordingly.</h1>
 
-        <div className="selection-boxes">
-        <div className="selection-card">
-        <div className="selection-header">
-
-        <h2>Choose the Page to Place Your Search Form</h2>
-        </div>
-      <select onChange={handlePageChange} value={selectedPage?.id || ""}>
-        <option value="" disabled>Select a page</option>
-        {pages.map((page) => (
-          <option key={page.id} value={page.id}>
-            {page.name}
-          </option>
-        ))}
-      </select>
-      </div>
-      </div>
-    
-          <div className="selection-boxes">
-
-
-          
-            <div className="selection-card">
-              <div className="selection-header">
-                <h2>Choose collections</h2>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectAllCollections}
-                    onChange={() => handleSelectAll("collection")}
-                  />
-                  All
-                </label>
-              </div>
-              {collections.map((collection) => (
-                <label key={collection.id} className="selection-item">
-                  <input
-                    type="checkbox"
-                    checked={selectedCollections.includes(collection.id)}
-                    onChange={() => toggleSelection("collection", collection.id)}
-                  />
-                  <span>{collection.displayName}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="selection-card">
-              <div className="selection-header">
-                <h2>Choose fields</h2>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectAllFields}
-                    onChange={() => handleSelectAll("field")}
-                  />
-                  All
-                </label>
-              </div>
-              {!loadingFields &&
-                  fields.map((field) => (
-                  <label key={field} className="selection-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedFields.includes(field)}
-                      onChange={() => toggleSelection("field", field)}
-                    />
-                    <span>{field}</span>
-                  </label>
-                ))}
-            </div>
+          {/* Collection Filtering Mode */}
+          <div className="radio-group">
+            {["Collection", "Pages", "Both"].map((item) => (
+              <label key={item} className="radio-label">
+                <input
+                  type="radio"
+                  value={item}
+                  checked={option === item}
+                  onChange={() => setOption(item)}
+                />
+                <span className={`radio-circle ${option === item ? "selected" : ""}`} />
+                {item}
+              </label>
+            ))}
           </div>
+
+          {(option === "Collection" || option === "Both") && (
+            <>
+              {/* 🔹 Site Search Section */}
+              <div className="selection-boxes">
+                <div className="selection-card">
+                  <div className="selection-header">
+                    <h2>Site Search - Collections</h2>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={selectAllSiteCollections}
+                        onChange={() =>
+                          handleSelectAll(
+                            selectAllSiteCollections,
+                            setSelectAllSiteCollections,
+                            setSelectedCollections,
+                            collections.map((c) => c.id)
+                          )
+                        }
+                      />{" "}
+                      All
+                    </label>
+                  </div>
+                  {collections.map((collection) => (
+                    <label key={collection.id} className="selection-item">
+                      <input
+                        type="checkbox"
+                        checked={selectedCollections.includes(collection.id)}
+                        onChange={() =>
+                          toggleSelection(
+                            selectedCollections,
+                            setSelectedCollections,
+                            selectAllSiteCollections,
+                            setSelectAllSiteCollections,
+                            collection.id,
+                            collections.map((c) => c.id)
+                          )
+                        }
+                      />
+                      <span>{collection.displayName}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="selection-card">
+                  <div className="selection-header">
+                    <h2>Site Search - Fields</h2>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={selectAllSiteFields}
+                        onChange={() =>
+                          handleSelectAll(
+                            selectAllSiteFields,
+                            setSelectAllSiteFields,
+                            setSelectedFields,
+                            siteFieldOptions
+                          )
+                        }
+                      />{" "}
+                      All
+                    </label>
+                  </div>
+                  {loadingSiteFields ? (
+                    <p>Loading...</p>
+                  ) : (
+                    siteFieldOptions.map((field) => (
+                      <label key={field} className="selection-item">
+                        <input
+                          type="checkbox"
+                          checked={selectedFields.includes(field)}
+                          onChange={() =>
+                            toggleSelection(
+                              selectedFields,
+                              setSelectedFields,
+                              selectAllSiteFields,
+                              setSelectAllSiteFields,
+                              field,
+                              siteFieldOptions
+                            )
+                          }
+                        />
+                        <span>{field}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+         
         </div>
       </div>
     </div>

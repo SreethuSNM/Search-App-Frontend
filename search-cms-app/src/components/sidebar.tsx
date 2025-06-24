@@ -2,7 +2,7 @@ import React from "react";
 import "../styles/sidebar.css"; // Correct path
 
 export default function Sidebar({ setActiveComponent, activeStep }) {
-  const progressMap = [0, 10, 20, 50, 100];
+  const progressMap = [0, 10, 20, 50, 80, 100];
   const progressPercent = progressMap[activeStep] || 0;
 
   return (
@@ -55,21 +55,9 @@ export default function Sidebar({ setActiveComponent, activeStep }) {
     </div>
     <span className="sidebar-text">Choose Display</span>
   </div>
-
-  {/* Customizer Step */}
+ {/* Setup Step */}
   <div
     className={`sidebar-item ${activeStep === 2 ? "active" : ""}`}
-    onClick={() => setActiveComponent("customizer")}
-  >
-    <div className="icon-container">
-      <img src="images/grid-edit.png" alt="Customize Display" className="icon" />
-    </div>
-    <span className="sidebar-text">Customize Display</span>
-  </div>
-
-  {/* Setup Step */}
-  <div
-    className={`sidebar-item ${activeStep === 3 ? "active" : ""}`}
     onClick={() => setActiveComponent("setup")}
   >
     <div className="icon-container">
@@ -78,8 +66,31 @@ export default function Sidebar({ setActiveComponent, activeStep }) {
     <span className="sidebar-text">Setup</span>
   </div>
 
+  {/* Customizer Step */}
+  <div
+    className={`sidebar-item ${activeStep === 3 ? "active" : ""}`}
+    onClick={() => setActiveComponent("customizer")}
+  >
+    <div className="icon-container">
+      <img src="images/grid-edit.png" alt="Customize Display" className="icon" />
+    </div>
+    <span className="sidebar-text">Customize Display</span>
+  </div>
+
+   {/* Customizer Step */}
+  <div
+    className={`sidebar-item ${activeStep === 4 ? "active" : ""}`}
+    onClick={() => setActiveComponent("selectpage")}
+  >
+    <div className="icon-container">
+      <img src="images/grid-edit.png" alt="Customize Display" className="icon" />
+    </div>
+    <span className="sidebar-text">SelectPage</span>
+  </div>
+
+ 
   {/* Finish Step - only render if activeStep === 4 */}
-{activeStep === 4 && (
+{activeStep === 5 && (
   <div
     className="sidebar-item active"
     onClick={() => setActiveComponent("finish")}

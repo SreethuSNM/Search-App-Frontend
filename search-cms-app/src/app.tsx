@@ -14,6 +14,17 @@ import {
   fetchCollections,
   fetchSites,
 } from "./services/api";
+import PageSelect from "./components/selectpage";
+
+
+type SetupConfig = {
+  searchType:      "Expand" | "Icon";
+  displayMode:     "List" | "Grid";
+  itemsPerPage:    string;
+  rows:            string;
+  columns:         string;
+  paginationType:  "Numbered" | "Load More";
+};
 
 function MainLayout({ children, activeStep, setActiveComponent }) {
   return (
@@ -35,22 +46,43 @@ function App() {
   const { exchangeAndVerifyIdToken, sessionToken } = useAuth();
 
   const [collections, setCollections] = useState([]);
+  const [selectedCollectionId, setSelectedCollectionId] = useState("");
   const [selectedCollections, setSelectedCollections] = useState([]);
   const [selectedFields, setSelectedFields] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pages, setPages] = useState([]);
   const [selectedPage, setSelectedPage] = useState(null);
   const [option, setOption] = useState("Collection");
+   const [userOption, setUserOption] = useState("Collection filtering");
   const [selectedDisplayFields, setSelectedDisplayFields] = useState([]);
+  const [selectedCollectionName, setSelectedCollectionName] = useState("");
+  const [filterCollectionId, setFilterCollectionId] = useState("");
+  const [filterCollectionName, setFilterCollectionName] = useState("");
+  const [filterFields, setFilterFields] = useState([]);
+
+
+
+
+
+  // 1. Define the shared setupConfig state in the parent:
+const [setupConfig, setSetupConfig] = useState<SetupConfig>({
+  searchType:      "Expand",
+  displayMode:     "List",
+  itemsPerPage:    "5",
+  rows:            "3",
+  columns:         "3",
+  paginationType:  "Numbered",
+});
   
 
 
   const handleSetActiveComponent = (component) => {
     if (component === "choose") setActiveStep(0);
     else if (component === "choose2") setActiveStep(1);
-    else if (component === "customizer") setActiveStep(2);
-    else if (component === "setup") setActiveStep(3);
-    else if (component === "finish") setActiveStep(4);
+    else if (component === "setup") setActiveStep(2);
+    else if (component === "customizer") setActiveStep(3);
+     else if (component === "selectpage") setActiveStep(4);
+    else if (component === "finish") setActiveStep(5);
   };
 
   useEffect(() => {
@@ -134,6 +166,7 @@ function App() {
               name: await page.getName(),
             }))
           );
+         
           setPages(pageDetails);
 
           console.log("page details:", pageDetails)
@@ -152,11 +185,15 @@ const [customStyle, setCustomStyle] = useState({
     borderRadius: "8px",
     titleColor: " #cf06aa",
     titleFontSize: "16px",
+    otherFieldsFontWeight : "font-normal",
     titleFontFamily: "Arial",
     otherFieldsColor: " #00a619",
     otherFieldsFontSize: "14px",
+     titleFontWeight : "font-bold",
     boxShadow: true, 
   });
+
+  
 
   return (
     <MainLayout
@@ -166,6 +203,8 @@ const [customStyle, setCustomStyle] = useState({
       {activeStep === 0 && (
         <Choose
           setActiveComponent={handleSetActiveComponent}
+          selectedCollectionName = {selectedCollectionName}
+          setSelectedCollectionName={setSelectedCollectionName}
           collections={collections}
           selectedCollections={selectedCollections}
           setSelectedCollections={setSelectedCollections}
@@ -173,11 +212,18 @@ const [customStyle, setCustomStyle] = useState({
           setSelectedFields={setSelectedFields}
           sessionToken={sessionToken}
           fetchCollectionItems={fetchCollectionItems}
-          pages={pages}
-          selectedPage={selectedPage}
-          setSelectedPage={setSelectedPage}
           option={option}
           setOption={setOption}
+          userOption={userOption}
+          setUserOption={setUserOption}
+          selectedCollectionId={selectedCollectionId}
+          setSelectedCollectionId={setSelectedCollectionId}
+          filterCollectionId={filterCollectionId}
+          filterCollectionName={filterCollectionName}
+          filterFields={filterFields}
+          setFilterCollectionId={setFilterCollectionId}
+          setFilterCollectionName={setFilterCollectionName}
+          setFilterFields={setFilterFields}
         />
       )}
 
@@ -194,23 +240,60 @@ const [customStyle, setCustomStyle] = useState({
         />
       )}
 
-      {activeStep === 2 && (
-  <Customizer
-   setActiveComponent={handleSetActiveComponent} 
-    customStyle={customStyle}
-    setCustomStyle={setCustomStyle}
-    />
-)}
-      {activeStep === 3 && <Setup 
+      {activeStep === 2 && <Setup 
       setActiveComponent={handleSetActiveComponent} 
       selectedCollections={selectedCollections}
       selectedFields={selectedFields}
       selectedDisplayFields={selectedDisplayFields}
       option={option}
+       userOption={userOption}
+       pages={pages}
       customStyle={customStyle}
+      setupConfig={setupConfig}
+      selectedCollectionId={selectedCollectionId}
+  setSetupConfig={(partial) => setSetupConfig(prev => ({ ...prev, ...partial }))}
+         
       
       />}
-      {activeStep === 4 && <Finish />}
+
+      {activeStep === 3 && (
+  <Customizer
+   setActiveComponent={handleSetActiveComponent} 
+    customStyle={customStyle}
+    setCustomStyle={setCustomStyle}
+    selectedCollections={selectedCollections}
+    selectedFields={selectedFields}
+    selectedDisplayFields={selectedDisplayFields}
+    option={option}
+    userOption={userOption}
+  setupConfig={setupConfig}
+    pages={pages}
+   filterCollectionId={filterCollectionId}
+    filterCollectionName={filterCollectionName}
+    filterFields={filterFields}
+      
+    />
+)}
+      
+      {activeStep === 4 && <PageSelect
+      selectedCollections={selectedCollections}
+    selectedFields={selectedFields}
+    selectedDisplayFields={selectedDisplayFields}
+    option={option}
+    userOption={userOption}
+    customStyle={customStyle}
+    setupConfig={setupConfig}
+    pages={pages}
+    selectedPage={selectedPage}
+    setSelectedPage={setSelectedPage}
+    setActiveComponent={handleSetActiveComponent}
+    selectedCollectionName={selectedCollectionName}
+    filterCollectionId={filterCollectionId}
+    filterCollectionName={filterCollectionName}
+          filterFields={filterFields}
+      />}
+
+       {activeStep === 5 && <Finish />}
     </MainLayout>
   );
 }
